@@ -36,4 +36,7 @@ urlpatterns = [
 
     # app urls
     path('', include('core.urls')),
+    
+    # django-browser-reload
+    path("__reload__/", include("django_browser_reload.urls")),
 ]
