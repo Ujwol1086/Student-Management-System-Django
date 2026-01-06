@@ -3,12 +3,12 @@ from .models import Student, Teacher, Course, Attendance
 # Register your models here.
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('name', 'roll_no', 'email', 'dob')
+    list_display = ('name', 'roll_no', 'email', 'user')
     search_fields = ('name', 'roll_no')
 
 @admin.register(Teacher)
 class TeacherAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'subject')
+    list_display = ('name', 'email', 'subject', 'user')
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
