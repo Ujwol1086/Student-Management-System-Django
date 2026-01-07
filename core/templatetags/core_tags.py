@@ -1,5 +1,5 @@
 from django import template
-from core.models import Teacher, Student
+from core.models import Teacher, Student, Notification
 
 register = template.Library()
 
@@ -22,4 +22,13 @@ def is_student(user):
     if not user or not user.is_authenticated:
         return False
     return Student.objects.filter(user=user).exists()
+
+@register.simple_tag
+def unread_notification_count(user):
+    """
+    Get count of unread notifications for a user.
+    """
+    if not user or not user.is_authenticated:
+        return 0
+    return Notification.objects.filter(user=user, is_read=False).count()
 
