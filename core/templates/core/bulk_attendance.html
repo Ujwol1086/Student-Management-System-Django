@@ -1,49 +1,144 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk Attendance</title>
-</head>
-<body>
-    <h2>Bulk Attendance</h2>
+{% extends 'base.html' %}
+{% load static %}
 
-<form method="post">
-    {% csrf_token %}
+{% block title %}Bulk Attendance - SMS{% endblock %}
 
-    <label>Course:</label>
-    <select name="course" required>
-        {% for course in courses %}
-            <option value="{{ course.id }}">{{ course.name }}</option>
-        {% endfor %}
-    </select>
-
-    <br><br>
-
-    <label>Date:</label>
-    <input type="date" name="date" value="{{ today }}" required>
-
-    <br><br>
-
-    {% if request.POST.course %}
-        <h3>Mark Attendance</h3>
-
-        {% if students %}
-            <h3>Mark Attendance</h3>
-
-            {% for student in students %}
-            <label>
-                <input type="checkbox" name="status_{{ student.id }}">
-                {{ student.name }}
-            </label>
-            <br>
-            {% endfor %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white shadow rounded-lg p-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">Bulk Attendance Marking</h1>
+        
+        {% if error %}
+        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+            {{ error }}
+        </div>
         {% endif %}
-    {% endif %}
+        
+        <form method="post" id="bulkAttendanceForm">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label for="{{ form.course.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Select Course
+                    </label>
+                    {{ form.course }}
+                    {% if form.course.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.course.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Select Date
+                        <span class="text-xs text-gray-500 font-normal ml-2">(Click to open calendar)</span>
+                    </label>
+                    <div class="relative">
+                        {{ form.date }}
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    {% if form.date.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.date.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Maximum date: {{ today }}</p>
+                </div>
+            </div>
+            
+            {% if students %}
+            <div class="mt-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                    Mark Attendance for {{ selected_course.name }}
+                </h2>
+                
+                <div class="mb-4 flex items-center space-x-4">
+                    <button type="button" onclick="selectAll()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                        Mark All Present
+                    </button>
+                    <button type="button" onclick="selectNone()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                        Mark All Absent
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Roll No
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Student Name
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Present
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for student in students %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ student.roll_no }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ student.name }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <input type="checkbox" 
+                                           name="status_{{ student.id }}" 
+                                           id="status_{{ student.id }}"
+                                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-6 flex justify-end">
+                    <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
+                        Save Attendance
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
+                <p>Please select a course and date to view enrolled students.</p>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
 
-    <br>
-    <button type="submit">Save Attendance</button>
-</form>
+<script>
+function selectAll() {
+    document.querySelectorAll('input[type="checkbox"][name^="status_"]').forEach(checkbox => {
+        checkbox.checked = true;
+    });
+}
 
-</body>
-</html>
+function selectNone() {
+    document.querySelectorAll('input[type="checkbox"][name^="status_"]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+// Auto-submit when course is selected
+document.getElementById('{{ form.course.id_for_label }}').addEventListener('change', function() {
+    if (this.value && document.getElementById('{{ form.date.id_for_label }}').value) {
+        this.form.submit();
+    }
+});
+
+// Auto-submit when date is selected
+document.getElementById('{{ form.date.id_for_label }}').addEventListener('change', function() {
+    if (this.value && document.getElementById('{{ form.course.id_for_label }}').value) {
+        this.form.submit();
+    }
+});
+</script>
+{% endblock %}

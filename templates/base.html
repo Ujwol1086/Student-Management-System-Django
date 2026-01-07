@@ -6,6 +6,96 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Student Management System{% endblock %}</title>
     {% tailwind_css %}
+    <style>
+        /* Ensure all form inputs have black text */
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        input[type="date"],
+        input[type="datetime-local"],
+        input[type="time"],
+        textarea,
+        select {
+            color: #111827 !important; /* text-gray-900 */
+        }
+        
+        /* Ensure placeholder text remains gray */
+        input::placeholder,
+        textarea::placeholder {
+            color: #9CA3AF !important; /* text-gray-400 */
+        }
+        
+        /* Enhance date input appearance - ensure calendar picker is visible */
+        input[type="date"],
+        input[type="datetime-local"] {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        /* Add calendar icon indicator for date inputs */
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 1;
+            filter: invert(0.5);
+            padding: 4px;
+            margin-left: 4px;
+        }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator:hover,
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+            filter: invert(0.3);
+        }
+        
+        /* Ensure date inputs show calendar on focus */
+        input[type="date"]:focus,
+        input[type="datetime-local"]:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        
+        /* Make date input padding accommodate calendar icon */
+        input[type="date"],
+        input[type="datetime-local"] {
+            padding-right: 2.5rem !important;
+            cursor: pointer;
+        }
+        
+        /* Ensure date inputs are clickable and show calendar */
+        input[type="date"]:hover,
+        input[type="datetime-local"]:hover {
+            border-color: #6366f1;
+        }
+        
+        /* Firefox date picker styling */
+        input[type="date"]::-moz-calendar-picker-indicator,
+        input[type="datetime-local"]::-moz-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 1;
+            filter: invert(0.5);
+        }
+        
+        input[type="date"]::-moz-calendar-picker-indicator:hover,
+        input[type="datetime-local"]::-moz-calendar-picker-indicator:hover {
+            filter: invert(0.3);
+        }
+        
+        /* Navigation overflow handling */
+        #main-nav {
+            min-width: 0;
+        }
+        
+        #nav-items {
+            min-width: 0;
+            flex-wrap: nowrap;
+        }
+        
+        .nav-item {
+            flex-shrink: 0;
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
     <!-- Messages -->
@@ -36,44 +126,277 @@
 
     {% if user.is_authenticated %}
     <!-- Navigation Bar -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo and Main Navigation -->
                 <div class="flex items-center space-x-8">
-                    <a href="{% url 'dashboard' %}" class="flex items-center text-xl font-bold text-indigo-600">
+                    <a href="{% url 'dashboard' %}" class="flex items-center text-xl font-bold text-indigo-600 hover:text-indigo-700 transition-colors">
                         <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                         </svg>
                         SMS
                     </a>
-                    <div class="hidden md:flex space-x-4">
-                        <a href="{% url 'dashboard' %}" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:border-b-2 hover:border-indigo-600 transition-colors">Dashboard</a>
+                    
+                    <!-- Desktop Navigation -->
+                    <div class="hidden lg:flex items-center space-x-1 flex-1 overflow-hidden" id="main-nav">
                         {% is_teacher user as user_is_teacher %}
                         {% is_student user as user_is_student %}
+                        
+                        <!-- Teacher Navigation -->
                         {% if user_is_teacher %}
-                        <a href="{% url 'teacher_dashboard' %}" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:border-b-2 hover:border-indigo-600 transition-colors">Teacher Dashboard</a>
+                        <div class="flex items-center space-x-1 flex-1 min-w-0" id="nav-items">
+                            <a href="{% url 'teacher_dashboard' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if request.resolver_match.url_name == 'teacher_dashboard' %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Dashboard
+                            </a>
+                            <a href="{% url 'bulk_attendance' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if request.resolver_match.url_name == 'bulk_attendance' %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Bulk Attendance
+                            </a>
+                            <a href="{% url 'mark_attendance' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if request.resolver_match.url_name == 'mark_attendance' %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Mark Attendance
+                            </a>
+                            <a href="{% url 'attendance_reports' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if request.resolver_match.url_name == 'attendance_reports' %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Reports
+                            </a>
+                            <a href="{% url 'manage_grades' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if request.resolver_match.url_name == 'manage_grades' %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Grades
+                            </a>
+                            <a href="{% url 'calendar' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if request.resolver_match.url_name == 'calendar' %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Calendar
+                            </a>
+                            <a href="{% url 'attendance_per_student' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if 'attendance_per_student' in request.resolver_match.url_name %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Per Student
+                            </a>
+                            <a href="{% url 'attendance_per_course' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if 'attendance_per_course' in request.resolver_match.url_name %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Per Course
+                            </a>
+                            <a href="{% url 'add_grade' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if request.resolver_match.url_name == 'add_grade' %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Add Grade
+                            </a>
+                        </div>
                         {% endif %}
+                        
+                        <!-- Student Navigation -->
                         {% if user_is_student %}
-                        <a href="{% url 'student_dashboard' %}" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:border-b-2 hover:border-indigo-600 transition-colors">My Dashboard</a>
+                        <div class="flex items-center space-x-1" id="nav-items">
+                            <a href="{% url 'student_dashboard' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if request.resolver_match.url_name == 'student_dashboard' %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Dashboard
+                            </a>
+                            <a href="{% url 'my_grades' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if request.resolver_match.url_name == 'my_grades' %}text-indigo-600 bg-indigo-50{% endif %}">
+                                My Grades
+                            </a>
+                            <a href="{% url 'calendar' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if request.resolver_match.url_name == 'calendar' %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Calendar
+                            </a>
+                        </div>
                         {% endif %}
-                        {% if user_is_teacher %}
-                        <a href="{% url 'mark_attendance' %}" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:border-b-2 hover:border-indigo-600 transition-colors">Mark Attendance</a>
-                        <a href="{% url 'bulk_attendance' %}" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:border-b-2 hover:border-indigo-600 transition-colors">Bulk Attendance</a>
+                        
+                        <!-- Admin Navigation -->
+                        {% if user.is_staff or user.is_superuser %}
+                        {% if not user_is_teacher and not user_is_student %}
+                        <div class="flex items-center space-x-1" id="nav-items">
+                            <a href="{% url 'dashboard' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if request.resolver_match.url_name == 'dashboard' %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Dashboard
+                            </a>
+                            <a href="{% url 'attendance_reports' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if 'attendance' in request.resolver_match.url_name %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Reports
+                            </a>
+                            <a href="{% url 'audit_logs' %}" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap {% if request.resolver_match.url_name == 'audit_logs' %}text-indigo-600 bg-indigo-50{% endif %}">
+                                Audit Logs
+                            </a>
+                        </div>
                         {% endif %}
+                        {% endif %}
+                        
+                        <!-- More Dropdown (hidden by default, shown when items overflow) -->
+                        <div class="relative group ml-1 hidden" id="more-menu">
+                            <button class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors flex items-center">
+                                More
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border border-gray-200 z-50" id="more-dropdown">
+                                <!-- More items will be populated here by JavaScript -->
+                            </div>
+                        </div>
                     </div>
                 </div>
+                
+                <!-- Right Side: User Info and Actions -->
                 <div class="flex items-center space-x-4">
-                    <span class="text-sm text-gray-600">Welcome, <span class="font-medium text-gray-900">{{ user.username }}</span></span>
+                    <!-- Notifications Icon -->
+                    <a href="{% url 'notifications' %}" class="relative p-2 text-gray-600 hover:text-indigo-600 transition-colors rounded-md hover:bg-indigo-50" title="Notifications">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                        {% unread_notification_count user as unread_count %}
+                        {% if unread_count > 0 %}
+                        <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">{{ unread_count }}</span>
+                        {% endif %}
+                    </a>
+                    
+                    <!-- User Info -->
+                    <div class="hidden sm:flex items-center space-x-3">
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-900">{{ user.get_full_name|default:user.username }}</p>
+                            {% if user_is_teacher %}
+                            <p class="text-xs text-gray-500">Teacher</p>
+                            {% elif user_is_student %}
+                            <p class="text-xs text-gray-500">Student</p>
+                            {% elif user.is_staff or user.is_superuser %}
+                            <p class="text-xs text-gray-500">Administrator</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Logout Button -->
                     <form method="post" action="{% url 'logout' %}" class="inline">
                         {% csrf_token %}
-                        <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-200">
-                            Logout
+                        <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                            <span class="hidden sm:inline">Logout</span>
                         </button>
                     </form>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button type="button" class="lg:hidden p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md" id="mobile-menu-button">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
                 </div>
+            </div>
+            
+            <!-- Mobile Navigation Menu -->
+            <div class="lg:hidden hidden border-t border-gray-200 py-2" id="mobile-menu">
+                {% is_teacher user as user_is_teacher %}
+                {% is_student user as user_is_student %}
+                
+                {% if user_is_teacher %}
+                <a href="{% url 'teacher_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Dashboard</a>
+                <a href="{% url 'bulk_attendance' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Bulk Attendance</a>
+                <a href="{% url 'mark_attendance' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Mark Attendance</a>
+                <a href="{% url 'attendance_reports' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Attendance Reports</a>
+                <a href="{% url 'manage_grades' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Manage Grades</a>
+                <a href="{% url 'add_grade' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Add Grade</a>
+                <a href="{% url 'calendar' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Calendar</a>
+                {% elif user_is_student %}
+                <a href="{% url 'student_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Dashboard</a>
+                <a href="{% url 'my_grades' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">My Grades</a>
+                <a href="{% url 'calendar' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Calendar</a>
+                {% elif user.is_staff or user.is_superuser %}
+                <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Dashboard</a>
+                <a href="{% url 'attendance_reports' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Reports</a>
+                <a href="{% url 'audit_logs' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Audit Logs</a>
+                {% endif %}
+                <a href="{% url 'notifications' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">
+                    Notifications
+                    {% unread_notification_count user as unread_count %}
+                    {% if unread_count > 0 %}
+                    <span class="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
             </div>
         </div>
     </nav>
+    
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+        
+        // Handle "More" dropdown for overflow items
+        function handleNavOverflow() {
+            const navContainer = document.getElementById('main-nav');
+            const navItems = document.getElementById('nav-items');
+            const moreMenu = document.getElementById('more-menu');
+            const moreDropdown = document.getElementById('more-dropdown');
+            
+            if (!navContainer || !navItems || !moreMenu || !moreDropdown) return;
+            
+            // Get all nav items
+            const items = Array.from(navItems.querySelectorAll('.nav-item'));
+            if (items.length === 0) return;
+            
+            // Reset - show all items
+            items.forEach(item => {
+                item.style.display = '';
+                item.classList.remove('hidden');
+            });
+            moreMenu.classList.add('hidden');
+            moreDropdown.innerHTML = '';
+            
+            // Get the right side width (user info + notifications + logout)
+            const rightSide = navContainer.parentElement.querySelector('.flex.items-center.space-x-4');
+            const rightSideWidth = rightSide ? rightSide.offsetWidth : 300;
+            
+            // Get available width
+            const containerWidth = navContainer.offsetWidth;
+            const moreButtonWidth = 80;
+            const availableWidth = containerWidth - rightSideWidth - moreButtonWidth - 20; // 20px for spacing
+            
+            // Check if items overflow
+            let totalWidth = 0;
+            items.forEach(item => {
+                totalWidth += item.offsetWidth + 4; // 4px for gap
+            });
+            
+            if (totalWidth > availableWidth) {
+                // Hide items that don't fit and add to "More" dropdown
+                let visibleWidth = 0;
+                const hiddenItems = [];
+                
+                items.forEach((item, index) => {
+                    const itemWidth = item.offsetWidth + 4;
+                    if (visibleWidth + itemWidth > availableWidth) {
+                        item.style.display = 'none';
+                        item.classList.add('hidden');
+                        hiddenItems.push(item);
+                    } else {
+                        visibleWidth += itemWidth;
+                    }
+                });
+                
+                // If we have hidden items, show "More" menu
+                if (hiddenItems.length > 0) {
+                    moreMenu.classList.remove('hidden');
+                    let hasActiveItem = false;
+                    
+                    hiddenItems.forEach(item => {
+                        const link = document.createElement('a');
+                        link.href = item.href;
+                        const isActive = item.classList.contains('text-indigo-600') || item.classList.contains('bg-indigo-50');
+                        if (isActive) hasActiveItem = true;
+                        link.className = isActive 
+                            ? 'block px-4 py-2 text-sm text-indigo-600 bg-indigo-50 hover:bg-indigo-100' 
+                            : 'block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600';
+                        link.textContent = item.textContent.trim();
+                        moreDropdown.appendChild(link);
+                    });
+                    
+                    // Highlight "More" button if it contains active item
+                    const moreButton = moreMenu.querySelector('button');
+                    if (moreButton && hasActiveItem) {
+                        moreButton.classList.add('text-indigo-600', 'bg-indigo-50');
+                    } else if (moreButton) {
+                        moreButton.classList.remove('text-indigo-600', 'bg-indigo-50');
+                    }
+                }
+            }
+        }
+        
+        // Run on load and resize
+        window.addEventListener('load', handleNavOverflow);
+        window.addEventListener('resize', handleNavOverflow);
+        
+        // Also run after a short delay to ensure DOM is fully rendered
+        setTimeout(handleNavOverflow, 100);
+    </script>
     {% endif %}
 
     {% block content %}
