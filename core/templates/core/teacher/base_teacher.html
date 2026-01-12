@@ -1,0 +1,143 @@
+{% load static tailwind_tags core_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Teachers - Student Management System{% endblock %}</title>
+    {% tailwind_css %}
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        input, select, textarea {
+            color: #111827;
+        }
+        input::placeholder {
+            color: #9CA3AF;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+
+{% if user.is_authenticated %}
+<div class="flex h-screen overflow-hidden">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="w-64 bg-blue-500 text-white">
+        <!-- Logo -->
+        <div class="h-16 flex items-center px-6 border-b border-white/10">
+            <div class="flex items-center space-x-3">
+                <span class="text-white text-sm font-medium">
+                    SMS
+                </span>
+            </div>
+        </div>
+        <!-- Navigation -->
+        <nav class="flex-1 px-3 py-6 space-y-1 text-sm">
+
+            <!-- Dashboard -->
+            <a href="{% url 'teacher_dashboard' %}"
+               class="flex items-center px-4 py-2 rounded-md
+               {% if request.resolver_match.url_name == 'teacher_dashboard' %}
+               bg-blue-600 text-white
+               {% else %}
+               text-slate-200 hover:bg-white/10
+               {% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 12l2-2 7-7 7 7"></path>
+                </svg>
+                Dashboard
+            </a>
+
+            <!-- Teachers (ACTIVE PAGE) -->
+            <a href="#"
+               class="flex items-center justify-between px-4 py-2 rounded-md bg-blue-600 text-white">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 13.255A23.931 23.931 0 0112 15"></path>
+                    </svg>
+                    Teachers
+                </div>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+
+            <a href="#" class="flex items-center px-4 py-2 rounded-md text-slate-200 hover:bg-white/10">
+                Students/ classes
+            </a>
+
+            <a href="#" class="flex items-center px-4 py-2 rounded-md text-slate-200 hover:bg-white/10">
+                Billing
+            </a>
+
+            <a href="#" class="flex items-center px-4 py-2 rounded-md text-slate-200 hover:bg-white/10">
+                Settings and profile
+            </a>
+
+            <a href="#" class="flex items-center px-4 py-2 rounded-md text-slate-200 hover:bg-white/10">
+                Exams
+            </a>
+
+            <div class="mt-6 px-4 text-xs uppercase text-slate-400">
+                Features
+                <span class="ml-2 bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px]">NEW</span>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- ================= MAIN ================= -->
+    <div class="flex-1 flex flex-col overflow-hidden min-w-0">
+
+        <!-- Top Header -->
+        <header class="bg-white h-16 border-b border-gray-200 flex items-center justify-end px-6 flex-shrink-0">
+            <div class="flex items-center space-x-6">
+                <a href="{% url 'notifications' %}" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                </a>
+
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="text-sm text-gray-600 hover:text-gray-900">
+                        Log out
+                    </button>
+                </form>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <main class="flex-1 overflow-y-auto bg-gray-50 min-h-0">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        <!-- Support Button -->
+        <div class="fixed bottom-6 right-6 z-40">
+            <button class="bg-[#172554] hover:bg-[#1e3a8a] text-white px-4 py-3 rounded-lg
+                           flex items-center space-x-2 shadow-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-sm font-medium">Support</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                </svg>
+            </button>
+        </div>
+
+    </div>
+</div>
+{% endif %}
+
+</body>
+</html>

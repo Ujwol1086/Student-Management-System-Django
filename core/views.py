@@ -40,27 +40,45 @@ def custom_login(request, role=None):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        selected_role = request.POST.get('selected_role', role)
         
         if username and password:
             user = authenticate(request, username=username, password=password)
             if user is not None:
+                # Check user's actual role
+                is_teacher = Teacher.objects.filter(user=user).exists()
+                is_student = Student.objects.filter(user=user).exists()
+                is_admin = user.is_staff or user.is_superuser
+                
+                # Validate selected role matches user's actual role
+                if selected_role == 'admin':
+                    if not is_admin:
+                        messages.error(request, 'Invalid credentials. These credentials are not for administrator login. Please use the correct login portal.')
+                        context = {'selected_role': 'admin'}
+                        return render(request, 'core/login.html', context)
+                elif selected_role == 'teacher':
+                    if not is_teacher:
+                        messages.error(request, 'Invalid credentials. These credentials are not for teacher login. Please use the correct login portal.')
+                        context = {'selected_role': 'teacher'}
+                        return render(request, 'core/login.html', context)
+                elif selected_role == 'student':
+                    if not is_student:
+                        messages.error(request, 'Invalid credentials. These credentials are not for student login. Please use the correct login portal.')
+                        context = {'selected_role': 'student'}
+                        return render(request, 'core/login.html', context)
+                
+                # Role validation passed - proceed with login
                 login(request, user)
                 
-                # Redirect based on role
-                try:
-                    Teacher.objects.get(user=user)
+                # Redirect based on actual role
+                if is_teacher:
                     return redirect('teacher_dashboard')
-                except Teacher.DoesNotExist:
-                    pass
-                
-                try:
-                    Student.objects.get(user=user)
+                elif is_student:
                     return redirect('student_dashboard')
-                except Student.DoesNotExist:
-                    pass
-                
-                # Admin or regular user
-                return redirect('dashboard')
+                elif is_admin:
+                    return redirect('dashboard')
+                else:
+                    return redirect('dashboard')
             else:
                 messages.error(request, 'Invalid username or password.')
         else:
@@ -129,7 +147,7 @@ def dashboard(request):
         'recent_attendance': recent_attendance,
         'unread_notifications': unread_notifications,
     }
-    return render(request, 'core/dashboard.html', context)
+    return render(request, 'core/admin/dashboard.html', context)
 
 @login_required
 @teacher_required
@@ -160,7 +178,7 @@ def mark_attendance(request):
         messages.success(request, f'Attendance marked successfully for {attendance.student.name}.')
         return redirect('mark_attendance')
     
-    return render(request, 'core/attendance.html', {
+    return render(request, 'core/teacher/attendance.html', {
         'form': form,
         'today': date.today()
     })
@@ -194,7 +212,7 @@ def teacher_dashboard(request):
         'unread_notifications': unread_notifications,
     }
     
-    return render(request, 'core/teacher_dashboard.html', context)
+    return render(request, 'core/teacher/teacher_dashboard.html', context)
 
 @login_required
 @student_required
@@ -261,7 +279,7 @@ def student_dashboard(request):
         'recent_grades': recent_grades,
     }
     
-    return render(request, 'core/student_dashboard.html', context)
+    return render(request, 'core/student/student_dashboard.html', context)
 
 @login_required
 @admin_or_teacher_required
@@ -346,7 +364,7 @@ def bulk_attendance(request):
             messages.success(request, f'Attendance marked for {marked_count} students successfully.')
             return redirect('bulk_attendance')
     
-    return render(request, 'core/bulk_attendance.html', {
+    return render(request, 'core/teacher/bulk_attendance.html', {
         'form': form,
         'courses': courses,
         'students': students,
@@ -395,7 +413,7 @@ def attendance_reports(request):
         'total_records': attendance_list.count(),
     }
     
-    return render(request, 'core/attendance_reports.html', context)
+    return render(request, 'core/teacher/attendance_reports.html', context)
 
 @login_required
 @admin_or_teacher_required
@@ -417,7 +435,7 @@ def attendance_per_student(request, student_id=None):
                     students = Student.objects.filter(course__teacher=teacher).distinct()
                 except Teacher.DoesNotExist:
                     pass
-            return render(request, 'core/attendance_per_student_select.html', {'students': students})
+            return render(request, 'core/teacher/attendance_per_student_select.html', {'students': students})
     
     # Get all courses for this student
     courses = Course.objects.filter(students=student)
@@ -452,7 +470,7 @@ def attendance_per_student(request, student_id=None):
         'overall_percentage': overall_percentage,
     }
     
-    return render(request, 'core/attendance_per_student.html', context)
+    return render(request, 'core/teacher/attendance_per_student.html', context)
 
 @login_required
 @admin_or_teacher_required
@@ -473,7 +491,7 @@ def attendance_per_course(request, course_id=None):
                     courses = Course.objects.filter(teacher=teacher)
                 except Teacher.DoesNotExist:
                     pass
-            return render(request, 'core/attendance_per_course_select.html', {'courses': courses})
+            return render(request, 'core/teacher/attendance_per_course_select.html', {'courses': courses})
     
     # Security check for teachers
     if not request.user.is_staff and not request.user.is_superuser:
@@ -509,7 +527,7 @@ def attendance_per_course(request, course_id=None):
         'student_stats': student_stats,
     }
     
-    return render(request, 'core/attendance_per_course.html', context)
+    return render(request, 'core/teacher/attendance_per_course.html', context)
 
 @login_required
 @admin_or_teacher_required
@@ -617,7 +635,7 @@ def audit_logs(request):
         'total_logs': logs.count(),
     }
     
-    return render(request, 'core/audit_logs.html', context)
+    return render(request, 'core/admin/audit_logs.html', context)
 
 @login_required
 @student_required
@@ -651,7 +669,7 @@ def my_grades(request):
         'courses_with_grades': courses_with_grades,
     }
     
-    return render(request, 'core/my_grades.html', context)
+    return render(request, 'core/student/my_grades.html', context)
 
 @login_required
 @admin_or_teacher_required
@@ -685,7 +703,7 @@ def manage_grades(request):
         'page_obj': page_obj,
     }
     
-    return render(request, 'core/manage_grades.html', context)
+    return render(request, 'core/teacher/manage_grades.html', context)
 
 @login_required
 @admin_or_teacher_required
@@ -723,7 +741,7 @@ def add_grade(request):
         except Teacher.DoesNotExist:
             pass
     
-    return render(request, 'core/add_grade.html', {'form': form})
+    return render(request, 'core/teacher/add_grade.html', {'form': form})
 
 @login_required
 def notifications(request):
@@ -789,7 +807,14 @@ def calendar(request):
         'events': events,
     }
     
-    return render(request, 'core/calendar.html', context)
+    # Shared calendar view - check if student or teacher/admin  
+    try:
+        Student.objects.get(user=request.user)
+        return render(request, 'core/student/calendar.html', context)
+    except Student.DoesNotExist:
+        if request.user.is_staff or request.user.is_superuser:
+            return render(request, 'core/admin/calendar.html', context)
+        return render(request, 'core/teacher/calendar.html', context)
 
 @login_required
 @admin_or_teacher_required
@@ -821,7 +846,7 @@ def add_event(request):
         except Teacher.DoesNotExist:
             pass
     
-    return render(request, 'core/add_event.html', {'form': form})
+    return render(request, 'core/teacher/add_event.html', {'form': form})
 
 # Admin Management Views
 @login_required
