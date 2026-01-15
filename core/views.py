@@ -32,15 +32,35 @@ from .utils import (
 
 def custom_login(request, role=None):
     """
-    Custom login view with role-based sections
+    Custom login view with role-based sections (Teacher and Student only)
     """
+    # If user is already authenticated, redirect to appropriate dashboard
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        try:
+            Teacher.objects.get(user=request.user)
+            return redirect('teacher_dashboard')
+        except Teacher.DoesNotExist:
+            try:
+                Student.objects.get(user=request.user)
+                return redirect('student_dashboard')
+            except Student.DoesNotExist:
+                # If user is admin/staff but admin login is disabled, redirect to login
+                return redirect('login')
+    
+    # Only allow 'teacher' and 'student' roles
+    if role and role not in ['teacher', 'student']:
+        messages.error(request, 'Invalid login portal. Please select Teacher or Student login.')
+        return redirect('login')
     
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         selected_role = request.POST.get('selected_role', role)
+        
+        # Validate selected role
+        if selected_role not in ['teacher', 'student']:
+            messages.error(request, 'Invalid login portal. Please select Teacher or Student login.')
+            return redirect('login')
         
         if username and password:
             user = authenticate(request, username=username, password=password)
@@ -48,47 +68,41 @@ def custom_login(request, role=None):
                 # Check user's actual role
                 is_teacher = Teacher.objects.filter(user=user).exists()
                 is_student = Student.objects.filter(user=user).exists()
-                is_admin = user.is_staff or user.is_superuser
                 
                 # Validate selected role matches user's actual role
-                if selected_role == 'admin':
-                    if not is_admin:
-                        messages.error(request, 'Invalid credentials. These credentials are not for administrator login. Please use the correct login portal.')
-                        context = {'selected_role': 'admin'}
-                        return render(request, 'core/login.html', context)
-                elif selected_role == 'teacher':
+                if selected_role == 'teacher':
                     if not is_teacher:
-                        messages.error(request, 'Invalid credentials. These credentials are not for teacher login. Please use the correct login portal.')
+                        messages.error(request, 'Invalid credentials. These credentials are not for teacher login. Please use the Teacher login portal.')
                         context = {'selected_role': 'teacher'}
                         return render(request, 'core/login.html', context)
+                    # Role validation passed - proceed with login
+                    login(request, user)
+                    messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
+                    return redirect('teacher_dashboard')
+                    
                 elif selected_role == 'student':
                     if not is_student:
-                        messages.error(request, 'Invalid credentials. These credentials are not for student login. Please use the correct login portal.')
+                        # Provide more helpful error message
+                        if is_teacher:
+                            messages.error(request, 'This account is registered as a Teacher. Please use the Teacher login portal.')
+                        else:
+                            messages.error(request, 'This account is not linked to a student profile. Please contact the administrator.')
                         context = {'selected_role': 'student'}
                         return render(request, 'core/login.html', context)
-                
-                # Role validation passed - proceed with login
-                login(request, user)
-                
-                # Redirect based on selected role
-                if selected_role == 'teacher':
-                    return redirect('teacher_dashboard')
-                elif selected_role == 'student':
+                    # Role validation passed - proceed with login
+                    login(request, user)
+                    messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
                     return redirect('student_dashboard')
-                elif selected_role == 'admin':
-                    return redirect('dashboard')
-                
-                # Fallback if no specific role selected or matched (shouldn't happen with above logic)
-                if is_teacher:
-                    return redirect('teacher_dashboard')
-                elif is_student:
-                    return redirect('student_dashboard')
-                else:
-                    return redirect('dashboard')
             else:
-                messages.error(request, 'Invalid username or password.')
+                messages.error(request, 'Invalid username or password. Please check your credentials and try again.')
+                # Keep the selected role in context to show the form again
+                context = {'selected_role': selected_role}
+                return render(request, 'core/login.html', context)
         else:
             messages.error(request, 'Please provide both username and password.')
+            # Keep the selected role in context to show the form again
+            context = {'selected_role': selected_role}
+            return render(request, 'core/login.html', context)
     
     context = {
         'selected_role': role,
