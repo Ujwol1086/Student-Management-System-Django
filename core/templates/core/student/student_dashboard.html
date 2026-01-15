@@ -105,8 +105,7 @@
                             </span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-3">
-                            <div class="h-3 rounded-full {% if item.attendance_percentage >= 75 %}bg-green-500{% elif item.attendance_percentage >= 50 %}bg-yellow-500{% else %}bg-red-500{% endif %}" 
-                                 style="width: {{ item.attendance_percentage }}%"></div>
+                            <div class="h-3 rounded-full {% if item.attendance_percentage >= 75 %}bg-green-500{% elif item.attendance_percentage >= 50 %}bg-yellow-500{% else %}bg-red-500{% endif %} attendance-bar" data-percentage="{{ item.attendance_percentage|default_if_none:0|floatformat:0 }}"></div>
                         </div>
                     </div>
 
@@ -173,5 +172,15 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.attendance-bar').forEach(function(bar) {
+        bar.style.width = bar.dataset.percentage + '%';
+    });
+});
+</script>
 {% endblock %}
 
