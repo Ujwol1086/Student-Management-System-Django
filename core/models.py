@@ -268,5 +268,11 @@ class StudyMaterial(models.Model):
     def get_file_url(self):
         """Return file URL or external URL"""
         if self.file:
-            return self.file.url
-        return self.file_url
+            # Django's file.url should automatically include MEDIA_URL
+            # But we'll ensure it's correct by always prepending /media/ if needed
+            url = self.file.url
+            # Ensure URL starts with /media/
+            if url and not url.startswith('/media/') and not url.startswith('http'):
+                url = '/media/' + url.lstrip('/')
+            return url
+        return self.file_url if self.file_url else None

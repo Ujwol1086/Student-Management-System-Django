@@ -448,14 +448,17 @@ def add_study_material(request):
     """
     Add a new study material
     """
-    form = StudyMaterialForm(request.POST or None, request.FILES or None, user=request.user)
-    
-    if form.is_valid():
-        material = form.save(commit=False)
-        material.created_by = request.user
-        material.save()
-        messages.success(request, f'Study material "{material.title}" added successfully!')
-        return redirect('manage_study_materials')
+    if request.method == 'POST':
+        form = StudyMaterialForm(request.POST, request.FILES, user=request.user)
+        
+        if form.is_valid():
+            material = form.save(commit=False)
+            material.created_by = request.user
+            material.save()
+            messages.success(request, f'Study material "{material.title}" added successfully!')
+            return redirect('manage_study_materials')
+    else:
+        form = StudyMaterialForm(user=request.user)
     
     return render(request, 'core/teacher/add_study_material.html', {'form': form})
 
@@ -562,6 +565,17 @@ def student_dashboard(request):
         attendance_percentage = calculate_attendance_percentage(student, course)
         recent_attendance = attendance_records[:5]
         
+        # Get study materials for this course
+        study_materials = StudyMaterial.objects.filter(
+            course=course,
+            is_published=True
+        ).order_by('-created_at')[:3]  # Get 3 most recent materials
+        
+        study_materials_count = StudyMaterial.objects.filter(
+            course=course,
+            is_published=True
+        ).count()
+        
         course_data.append({
             'course': course,
             'teacher_name': course.teacher.name,
@@ -570,6 +584,8 @@ def student_dashboard(request):
             'total_records': total_records,
             'attendance_percentage': attendance_percentage,
             'recent_attendance': recent_attendance,
+            'study_materials': study_materials,
+            'study_materials_count': study_materials_count,
         })
         
         total_present += present_count
@@ -586,6 +602,12 @@ def student_dashboard(request):
     # Get recent grades
     recent_grades = Grade.objects.filter(student=student).order_by('-created_at')[:5]
     
+    # Get total study materials count
+    total_study_materials = StudyMaterial.objects.filter(
+        course__in=courses,
+        is_published=True
+    ).count()
+    
     context = {
         'student': student,
         'course_data': course_data,
@@ -596,6 +618,7 @@ def student_dashboard(request):
         'overall_percentage': overall_percentage,
         'unread_notifications': unread_notifications,
         'recent_grades': recent_grades,
+        'total_study_materials': total_study_materials,
     }
     
     return render(request, 'core/student/student_dashboard.html', context)

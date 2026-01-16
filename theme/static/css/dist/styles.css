@@ -2510,6 +2510,9 @@
   .border-green-500 {
     border-color: var(--color-green-500);
   }
+  .border-indigo-500 {
+    border-color: var(--color-indigo-500);
+  }
   .border-indigo-600 {
     border-color: var(--color-indigo-600);
   }
@@ -2604,6 +2607,9 @@
   }
   .bg-indigo-50 {
     background-color: var(--color-indigo-50);
+  }
+  .bg-indigo-100 {
+    background-color: var(--color-indigo-100);
   }
   .bg-indigo-600 {
     background-color: var(--color-indigo-600);
@@ -3469,6 +3475,11 @@
   @media (width >= 64rem) {
     .lg\:grid-cols-4 {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  @media (width >= 64rem) {
+    .lg\:grid-cols-5 {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
     }
   }
   @media (width >= 64rem) {
